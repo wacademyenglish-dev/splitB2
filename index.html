@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WOLFSTATION: SPLIT FICTION (B2)</title>
+    
+    <!-- Fonts: Orbitron (Sci-Fi), Cinzel (Fantasy), Rajdhani (UI), Inter (Base) -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Cinzel:wght@600;700;900&family=Rajdhani:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ws: {
+                            bg: '#05050a',        
+                            sciCyan: '#06b6d4',
+                            fanGold: '#f59e0b',
+                            errorRed: '#ef4444',
+                            success: '#22c55e',
+                            void: '#8b5cf6' /* The Void Syntax Villain Color */
+                        }
+                    },
+                    fontFamily: {
+                        epicSci: ['Orbitron', 'sans-serif'],
+                        epicFan: ['Cinzel', 'serif'],
+                        ui: ['Rajdhani', 'sans-serif'],
+                        base: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Cinematic Dark Mode */
+        body {
+            background-color: #05050a;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            margin: 0;
+            background-image: 
+                linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, transparent 50%, rgba(245, 158, 11, 0.05) 100%),
+                url("https://www.transparenttextures.com/patterns/cubes.png");
+        }
+
+        /* The Aesthetic Split / Glitch Background */
+        body::before {
+            content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            background: linear-gradient(90deg, rgba(6, 182, 212, 0.04) 49%, rgba(255, 255, 255, 0.15) 50%, rgba(245, 158, 11, 0.04) 51%);
+            animation: riftPulse 5s infinite alternate;
+        }
+        @keyframes riftPulse { 
+            0% { opacity: 0.5; filter: blur(2px); box-shadow: inset 0 0 50px rgba(6, 182, 212, 0.1); } 
+            100% { opacity: 1; filter: blur(0px); box-shadow: inset 0 0 100px rgba(245, 158, 11, 0.1); } 
+        }
+
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
+
+        /* Glassmorphism Panels */
+        .ws-panel {
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border-left: 3px solid #06b6d4;
+            border-right: 3px solid #f59e0b;
+            box-shadow: -10px 0 30px rgba(6, 182, 212, 0.1), 10px 0 30px rgba(245, 158, 11, 0.1);
+            border-radius: 4px; 
+            transition: all 0.3s ease; position: relative;
+        }
+
+        .ws-btn {
+            background: linear-gradient(45deg, rgba(6, 182, 212, 0.15), rgba(245, 158, 11, 0.15)); 
+            color: #fff; font-family: 'Rajdhani', sans-serif; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em; font-size: 1.1rem;
+            border-left: 2px solid #06b6d4; border-right: 2px solid #f59e0b; border-top: none; border-bottom: none;
+            border-radius: 4px; padding: 0.75rem 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden;
+        }
+        .ws-btn:hover { background: linear-gradient(45deg, rgba(6, 182, 212, 0.4), rgba(245, 158, 11, 0.4)); transform: scale(1.05); }
+        .ws-btn:active { transform: scale(0.95); }
+        
+        .disabled-btn { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
+
+        /* Match Minigame (Synthesis Engine) */
+        .match-btn { background: rgba(10, 10, 15, 0.9); transition: all 0.3s; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .match-left { border: 2px solid #8b5cf6; color: #c4b5fd; font-family: 'Inter', sans-serif; }
+        .match-left:hover:not(.matched) { background: rgba(139, 92, 246, 0.2); box-shadow: 0 0 20px rgba(139,92,246,0.5); }
+        .match-left.selected { background: #8b5cf6; color: #fff; box-shadow: 0 0 30px #8b5cf6; }
+        
+        .match-right { border: 2px solid #06b6d4; color: #cffafe; font-family: 'Inter', sans-serif; font-size: 1rem; }
+        .match-right:hover:not(.matched) { background: rgba(6, 182, 212, 0.2); box-shadow: 0 0 20px rgba(6,182,212,0.5); }
+        .match-right.selected { background: #06b6d4; color: #000; box-shadow: 0 0 30px #06b6d4; }
+        .matched { background: rgba(34, 197, 94, 0.2) !important; border-color: #22c55e !important; color: #22c55e !important; pointer-events: none; }
+
+        /* Hacker Terminal */
+        .hack-node { background: rgba(139, 92, 246, 0.2); border: 1px dashed #8b5cf6; color: #c4b5fd; padding: 2px 8px; cursor: pointer; transition: all 0.2s; font-family: monospace; display: inline-block; }
+        .hack-node:hover { background: rgba(139, 92, 246, 0.4); box-shadow: 0 0 15px #8b5cf6; color: #fff; }
+        .hack-node.solved { background: rgba(6, 182, 212, 0.1); border-color: #06b6d4; border-style: solid; color: #06b6d4; font-family: 'Inter', sans-serif; pointer-events: none; text-shadow: 0 0 10px rgba(6,182,212,0.5); }
+
+        .level { display: none; opacity: 0; width: 100%; min-height: 100%; flex-direction: column; position: relative; z-index: 10; padding: 1.5rem; }
+        .level.active { display: flex; animation: fadeLevel 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .level.active::before, .level.active::after { content: ''; margin: auto; }
+        .page-content { margin: auto; width: 100%; max-width: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; padding: 1rem 0; }
+        @keyframes fadeLevel { 0% { opacity: 0; transform: scale(0.98) translateY(10px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+
+        #loading-screen { position: fixed; inset: 0; background: #05050a; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s ease-in-out; }
+        
+        #damage-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 9000; opacity: 0; transition: opacity 0.3s; box-shadow: inset 0 0 150px rgba(239, 68, 68, 0.9); background: rgba(239, 68, 68, 0.2); }
+        .take-damage { animation: flashDamage 0.5s forwards; }
+        @keyframes flashDamage { 0% { opacity: 1; backdrop-filter: blur(8px); transform: translateX(-5px); } 25% { transform: translateX(5px); } 50% { transform: translateX(-5px); } 100% { opacity: 0; backdrop-filter: blur(0px); transform: translateX(0); } }
+
+        #praise-toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); z-index: 10000; transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #praise-toast.show { top: 80px; }
+
+        .speaking-starter { background: rgba(255, 255, 255, 0.05); border-left: 4px solid #fff; padding: 0.75rem 1rem; border-radius: 0 4px 4px 0; margin-top: 10px; font-family: 'Rajdhani', sans-serif; font-size: 1.2rem; color: #e2e8f0; font-weight: bold; text-align: left; letter-spacing: 0.05em;}
+        
+        /* Nav bar padded to avoid cutoffs */
+        .nav-bar { width: 100%; max-width: 7xl; display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 1rem 2.5rem 1rem; flex-shrink: 0; margin-top: auto; z-index: 20; }
+        
+        /* Purify Code Minigame */
+        .purify-btn { transition: all 0.2s; }
+        .purify-btn:hover { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 0 15px #ef4444; }
+
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="flex flex-col h-screen w-screen selection:bg-ws-sciCyan selection:text-black relative">
+
+    <div id="damage-overlay"></div>
+
+    <div id="praise-toast" class="bg-black/95 px-8 py-4 border-l-4 border-r-4 border-l-ws-sciCyan border-r-ws-fanGold flex items-center gap-4 shadow-[0_0_40px_rgba(34,197,94,0.3)] rounded">
+        <span id="praise-icon" class="text-3xl drop-shadow-md text-ws-success"></span>
+        <span id="praise-text" class="text-white font-bold text-xl md:text-2xl uppercase tracking-widest font-ui text-shadow"></span>
+    </div>
+
+    <!-- DM TOOLS -->
+    <div id="dm-tools" class="fixed top-[80px] left-4 z-50 group hidden md:block">
+        <button class="bg-black text-white w-12 h-12 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.3)] transition border border-gray-700 hover:border-ws-void">
+            <i class="fas fa-sliders-h text-xl"></i>
+        </button>
+        <div class="absolute top-0 left-14 ws-panel p-4 w-64 hidden group-hover:flex flex-col gap-2 border-l-4 border-l-ws-void">
+            <h3 class="font-ui text-ws-void text-sm font-bold tracking-widest border-b border-gray-700 pb-2 text-center">DM OVERRIDE</h3>
+            <button onclick="addXP(50)" class="text-left text-sm text-gray-300 hover:text-ws-fanGold transition font-ui font-bold"><i class="fas fa-plus mr-2"></i> Inject 50 XP</button>
+            <button onclick="takeDamage()" class="text-left text-sm text-red-400 hover:text-red-500 transition font-ui font-bold"><i class="fas fa-bug mr-2"></i> Trigger Time Anomaly</button>
+        </div>
+    </div>
+
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen">
+        <div class="relative w-full max-w-sm md:max-w-md mx-auto mb-8 animate-float flex flex-col items-center px-4">
+            <div class="absolute inset-0 bg-gradient-to-r from-ws-sciCyan to-ws-fanGold blur-[100px] opacity-20 pointer-events-none"></div>
+            <img src="https://image.api.playstation.com/vulcan/ap/rnd/202411/2918/2f22fe90e5d24b586128d129bd40fe6a336a6803b4cf36aa.png" alt="Game Cover" class="relative z-10 w-full h-auto max-h-[40vh] object-contain rounded shadow-[0_0_50px_rgba(255,255,255,0.1)] border border-gray-800">
+            <div class="flex items-center gap-4 mt-8">
+                <h1 class="text-4xl md:text-5xl font-epicSci font-bold text-ws-sciCyan tracking-widest drop-shadow-[0_0_15px_#06b6d4]">SCI-FI</h1>
+                <span class="text-white text-2xl font-bold opacity-50">X</span>
+                <h1 class="text-4xl md:text-5xl font-epicFan font-bold text-ws-fanGold tracking-widest drop-shadow-[0_0_15px_#f59e0b]">FANTASY</h1>
+            </div>
+            <p class="text-lg font-ui text-ws-void mt-3 tracking-[0.3em] uppercase font-bold animate-pulse">Warning: Timeline Corrupted</p>
+        </div>
+        
+        <button id="start-btn" onclick="pressStart()" class="font-epicSci text-2xl font-bold text-black bg-white px-14 py-5 hover:bg-gray-300 transition-all uppercase tracking-widest z-20 shadow-[0_0_30px_rgba(255,255,255,0.6)] rounded">INITIALIZE B2</button>
+        
+        <div id="loading-ui" class="hidden flex-col items-center mt-4 z-20">
+            <i class="fas fa-circle-notch text-ws-sciCyan text-5xl mb-4 animate-spin"></i>
+            <p class="font-ui text-gray-300 tracking-[0.2em] uppercase text-lg animate-pulse mb-3 font-bold">Synchronizing Timelines...</p>
+            <p class="font-base text-gray-400 text-sm border border-gray-800 p-3 bg-black/80 max-w-md text-center shadow-inner rounded">Target: Upper-Intermediate (B2) | Protocol: 3rd & Mixed Conditionals</p>
+        </div>
+    </div>
+
+    <header class="h-16 shrink-0 bg-black/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-4 md:px-8 relative shadow-lg">
+        <div class="flex items-center gap-4 md:gap-6">
+            <div class="bg-[#0a0a0f] px-4 py-2 rounded border border-gray-800 flex items-center gap-2 shadow-inner">
+                <i class="fas fa-shield-alt text-xl text-ws-sciCyan drop-shadow-[0_0_8px_#06b6d4]" id="hp-1"></i>
+                <i class="fas fa-shield-alt text-xl text-ws-sciCyan drop-shadow-[0_0_8px_#06b6d4]" id="hp-2"></i>
+                <i class="fas fa-shield-alt text-xl text-ws-sciCyan drop-shadow-[0_0_8px_#06b6d4]" id="hp-3"></i>
+            </div>
+            <div class="flex flex-col hidden sm:flex">
+                <span class="text-[10px] text-gray-500 tracking-[0.2em] uppercase font-bold font-ui">Author Protocol</span>
+                <span id="hud-player-name" class="text-sm text-gray-200 font-bold uppercase tracking-wider font-base drop-shadow-sm">OFFLINE</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 md:gap-5">
+            <div class="flex items-center gap-2 bg-[#0a0a0f] px-5 py-2 rounded border border-gray-800 hidden lg:flex shadow-inner">
+                <i class="fas fa-bolt text-ws-fanGold drop-shadow-[0_0_8px_#f59e0b]"></i>
+                <span id="xp-counter" class="font-ui font-bold text-xl text-white tracking-widest transition-transform duration-300">0</span>
+            </div>
+            
+            <button onclick="toggleFullscreen()" class="font-ui text-sm md:text-base font-bold bg-gray-900 border border-gray-700 text-gray-400 hover:text-white transition-colors uppercase tracking-widest hidden sm:block px-4 py-2 rounded shadow-lg">
+                [ Fullscreen ]
+            </button>
+            
+            <button onclick="toggleNotes()" class="font-ui text-sm md:text-base font-bold bg-gray-900 border border-gray-700 text-white hover:text-ws-sciCyan hover:border-ws-sciCyan transition-colors uppercase tracking-widest px-5 py-2 rounded shadow-lg">
+                <i class="fas fa-book-journal-whills mr-2"></i> HYBRID CODEX
+            </button>
+        </div>
+    </header>
+
+    <div id="notes-panel" class="fixed top-16 bottom-16 right-0 w-full max-w-sm bg-[#05050a]/95 backdrop-blur-2xl border-l-2 border-ws-fanGold z-50 translate-x-full flex flex-col shadow-[-15px_0px_40px_rgba(245,158,11,0.15)] transition-transform duration-500 text-white">
+        <div class="p-5 border-b border-gray-800 bg-gray-900 flex justify-between items-center shrink-0">
+            <h2 class="font-bold uppercase tracking-widest text-lg flex items-center gap-2 text-ws-fanGold font-epicFan drop-shadow-sm">
+                <i class="fas fa-scroll"></i> The Hybrid Codex
+            </h2>
+            <button onclick="toggleNotes()" class="text-gray-400 hover:text-white font-black text-2xl px-2 transition-colors">✕</button>
+        </div>
+        <div class="flex-1 w-full p-5 overflow-hidden flex flex-col bg-[url('https://www.transparenttextures.com/patterns/aged-paper.png')] bg-blend-overlay bg-black/80">
+            <p class="text-[11px] font-ui text-gray-400 uppercase tracking-[0.2em] mb-3 px-1 border-b border-gray-700 pb-2">Record conditional logic here...</p>
+            <textarea id="class-notes" class="flex-1 w-full bg-black/60 text-gray-200 border border-gray-700 rounded outline-none p-5 font-base text-lg leading-relaxed resize-none placeholder-gray-600 shadow-inner focus:border-ws-fanGold transition-colors" placeholder="> 3rd: If he had fought, he would have died.&#10;> Mixed: If she hadn't escaped, she would be here now."></textarea>
+        </div>
+    </div>
+
+    <!-- Main area padded to 28 so nav bar and content are above fixed footer -->
+    <main class="flex-1 w-full relative z-10 overflow-y-auto scroll-smooth pt-4 pb-28 double-click-area">
+        <div class="w-full h-full relative" id="levels-container">
+            
+            <!-- PAGE 1: BRIEFING -->
+            <section class="level active">
+                <div class="page-content">
+                    <h2 class="font-ui font-bold tracking-[0.3em] mb-3 uppercase text-sm text-ws-void animate-pulse">System Alert: B2 Authorized</h2>
+                    <h1 class="text-5xl md:text-7xl font-black text-white mb-8 tracking-tighter font-epicSci uppercase drop-shadow-lg">Mission Briefing</h1>
+                    
+                    <div class="ws-panel p-8 md:p-12 max-w-4xl w-full text-lg leading-relaxed text-gray-300 text-left border-t-4 border-ws-void shadow-[0_0_30px_rgba(139,92,246,0.1)]">
+                        <p class="mb-6 font-base font-medium text-xl">Welcome to <strong class="text-white">Split Fiction B2</strong>. A catastrophic event has merged the Sci-Fi and Fantasy timelines. A digital parasite known as <strong class="text-ws-void font-epicSci tracking-widest text-2xl">THE VOID SYNTAX</strong> is altering past events to destroy the present.</p>
+                        <div class="bg-black/60 p-6 border border-gray-700 rounded shadow-inner">
+                            <h3 class="font-ui uppercase text-base mb-4 text-gray-400 tracking-widest font-bold border-b border-gray-800 pb-2">Mission Objectives:</h3>
+                            <ul class="list-none pl-1 space-y-4 font-base text-lg font-bold">
+                                <li class="flex items-start gap-4"><span class="text-2xl text-ws-sciCyan mt-0.5"><i class="fas fa-project-diagram"></i></span> <div><strong>Grammar Protocol:</strong> Master <span class="text-white">Third & Mixed Conditionals</span> to investigate alternate realities and reverse the damage.</div></li>
+                                <li class="flex items-start gap-4"><span class="text-2xl text-ws-fanGold mt-0.5"><i class="fas fa-dragon"></i></span> <div><strong>Creative Focus:</strong> Speculate on past mistakes, forge a new narrative, and outsmart the algorithm!</div></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <div class="w-32"></div>
+                    <button onclick="nextPage()" class="ws-btn px-12 py-5 text-xl">ACCESS TIMELINE <i class="fas fa-power-off ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 2: CLASS SELECTION -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui font-bold text-xl text-ws-sciCyan mb-3 tracking-[0.2em] uppercase text-center">Identity Setup</h2>
+                    <h1 class="font-epicSci font-bold text-4xl md:text-6xl text-white mb-10 text-center tracking-widest uppercase drop-shadow-md">Choose your Architect</h1>
+                    
+                    <div class="max-w-5xl w-full">
+                        <input type="text" id="player-name-input" placeholder="ENTER CODENAME" oninput="checkNameInput(this)" class="bg-black/80 border-2 border-gray-700 text-white text-center font-ui text-3xl py-5 px-8 uppercase tracking-[0.2em] focus:border-ws-sciCyan outline-none w-full max-w-2xl mx-auto block mb-12 rounded transition-colors shadow-inner">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                            <!-- Sci-Fi Class -->
+                            <div class="class-card class-sci p-10 text-center rounded-xl border border-gray-800" onclick="selectClass('MIO (SCI-FI)', this)">
+                                <i class="fas fa-microchip text-7xl text-ws-sciCyan mb-6 drop-shadow-[0_0_15px_#06b6d4]"></i>
+                                <h3 class="font-epicSci font-bold text-4xl text-white mb-2 tracking-widest">MIO</h3>
+                                <p class="text-ws-sciCyan font-ui font-bold border-t border-gray-800 pt-4 text-xl uppercase tracking-[0.2em]">The Futurist</p>
+                                <p class="text-base text-gray-400 mt-3 font-base leading-relaxed">You command technology. Your logic is based on cause, effect, and synthetic manipulation.</p>
+                            </div>
+                            <!-- Fantasy Class -->
+                            <div class="class-card class-fan p-10 text-center rounded-xl border border-gray-800" onclick="selectClass('ZOE (FANTASY)', this)">
+                                <i class="fas fa-gem text-7xl text-ws-fanGold mb-6 drop-shadow-[0_0_15px_#f59e0b]"></i>
+                                <h3 class="font-epicFan font-bold text-4xl text-white mb-2 tracking-widest">ZOE</h3>
+                                <p class="text-ws-fanGold font-ui font-bold border-t border-gray-800 pt-4 text-xl uppercase tracking-[0.2em]">The Mythologist</p>
+                                <p class="text-base text-gray-400 mt-3 font-base leading-relaxed">You command the arcane. Your logic is based on destiny, ancient spells, and mystical paradoxes.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button id="btn-confirm-char" onclick="confirmCharacter()" class="ws-btn px-12 py-5 text-xl disabled-btn" disabled>CONFIRM ROLE <i class="fas fa-check ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 3: DISCUSSION 1 (Icebreaker) -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui font-bold tracking-[0.2em] mb-2 uppercase text-lg text-gray-500">Campfire Protocol</h2>
+                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-10 tracking-tight uppercase font-base">The Genre Swap</h1>
+                    
+                    <div class="ws-panel p-10 max-w-4xl w-full text-center border-t-4 border-gray-600">
+                        <div class="flex justify-center gap-12 mb-8 text-7xl">
+                            <i class="fas fa-space-shuttle text-ws-sciCyan drop-shadow-[0_0_20px_#06b6d4]"></i>
+                            <span class="text-gray-600 font-epicSci text-5xl mt-2"><i class="fas fa-exchange-alt"></i></span>
+                            <i class="fas fa-khanda text-ws-fanGold drop-shadow-[0_0_20px_#f59e0b]"></i>
+                        </div>
+                        <p class="text-2xl md:text-3xl font-bold mb-10 text-white leading-relaxed font-base px-8">
+                            "Imagine you went to sleep today and woke up as the protagonist of a Sci-Fi OR a Fantasy game. Which one would you choose, and what would be your first action?"
+                        </p>
+                        <div class="bg-black/60 p-8 rounded border border-gray-700 text-left shadow-inner">
+                            <p class="font-bold text-gray-400 text-sm mb-4 tracking-widest uppercase font-ui"><i class="fas fa-microphone text-ws-success mr-2"></i> Articulate your scenario:</p>
+                            <div class="speaking-starter !border-gray-500 !bg-gray-800/40">"I would definitely choose [ Sci-Fi / Fantasy ] because..."</div>
+                            <div class="speaking-starter !border-gray-500 !bg-gray-800/40">"If I woke up in that world, the first thing I would do is..."</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-10 py-4 text-lg">PROCEED <i class="fas fa-arrow-right ml-2"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 4: DISCUSSION 2 (The Dilemma) -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui font-bold tracking-[0.2em] mb-2 uppercase text-lg text-gray-500">Campfire Protocol</h2>
+                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-10 tracking-tight uppercase font-base">The Collision</h1>
+                    
+                    <div class="ws-panel p-10 max-w-4xl w-full text-center border-t-4 border-gray-600">
+                        <span class="text-7xl mb-8 block drop-shadow-lg text-gray-400"><i class="fas fa-meteor"></i></span>
+                        <p class="text-2xl md:text-3xl font-bold mb-10 text-white leading-relaxed font-base">
+                            "A portal opens. A futuristic spaceship crashes in the middle of a medieval kingdom filled with dragons. How would the people from both sides react to each other?"
+                        </p>
+                        <div class="bg-black/60 p-8 rounded border border-gray-700 text-left shadow-inner">
+                            <p class="font-bold text-gray-400 text-sm mb-4 tracking-widest uppercase font-ui"><i class="fas fa-microphone text-ws-success mr-2"></i> Speculate:</p>
+                            <div class="speaking-starter !border-gray-500 !bg-gray-800/40">"The people from the kingdom would probably think the spaceship is..."</div>
+                            <div class="speaking-starter !border-gray-500 !bg-gray-800/40">"It would be chaotic because..."</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-10 py-4 text-lg">PROCEED <i class="fas fa-arrow-right ml-2"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 5: DEEP DIVE (The B2 Concept) -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui font-bold tracking-[0.2em] mb-2 uppercase text-lg text-ws-sciCyan drop-shadow-[0_0_5px_#06b6d4]">Lore Analysis</h2>
+                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-10 tracking-tight uppercase font-base">Altering Reality</h1>
+                    
+                    <div class="ws-panel p-10 max-w-4xl w-full text-center border-t-4 border-ws-sciCyan">
+                        <div class="flex justify-center gap-6 mb-8 text-7xl text-gray-400">
+                            <i class="fas fa-clock"></i> <i class="fas fa-arrow-right text-3xl mt-4"></i> <i class="fas fa-code-branch text-ws-sciCyan drop-shadow-[0_0_15px_#06b6d4]"></i>
+                        </div>
+                        <p class="text-2xl md:text-3xl font-bold mb-10 text-gray-200 leading-relaxed font-base">
+                            "In Split Fiction, every action creates a ripple effect. If you change something in the past, the present reality completely morphs. We call this the 'Butterfly Effect'."
+                        </p>
+                        <div class="bg-black/60 p-8 rounded border border-gray-800 text-left shadow-inner">
+                            <p class="font-bold text-ws-sciCyan text-sm mb-4 tracking-widest uppercase font-ui"><i class="fas fa-microphone text-ws-sciCyan mr-2"></i> Connect & Speak:</p>
+                            <div class="speaking-starter !border-ws-sciCyan !bg-cyan-900/20 !text-gray-200">"If I could go back in time and change one small thing in my life..."</div>
+                            <div class="speaking-starter !border-ws-sciCyan !bg-cyan-900/20 !text-gray-200">"A movie that explores this concept perfectly is..."</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-10 py-4 text-lg">SCAN ANOMALY <i class="fas fa-search ml-2"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 6: ACTIVE VOCABULARY (B2 Level) -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui font-bold tracking-[0.3em] mb-2 uppercase text-sm text-ws-void animate-pulse">Void Anomaly Detected</h2>
+                    <h1 class="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight uppercase font-epicSci">Advanced Lexicon Retrieval</h1>
+                    <p class="text-lg font-base bg-black/80 px-8 py-4 border-l-4 border-ws-void mb-8 text-gray-300 rounded shadow-inner font-medium">To investigate the timeline, you need high-level vocabulary. Inject the correct B2 synonym into the data logs.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl mb-10">
+                        <!-- Card 1: ALTER -->
+                        <div class="ws-panel p-8 flex flex-col items-center min-h-[320px] border-t-4 border-t-gray-600 transition-all duration-300 shadow-lg">
+                            <div class="w-full h-14 mb-6 shrink-0">
+                                <button class="vocab-slot w-full h-full font-ui font-bold text-xl text-gray-500 tracking-[0.2em] uppercase border-2 border-dashed border-gray-600 rounded hover:bg-gray-800 hover:text-white transition" onclick="injectVocab(this, 'ALTER', 'followup-1')">
+                                    [ INJECT DATA ]
+                                </button>
+                            </div>
+                            <i class="fas fa-sliders-h text-5xl text-gray-600 mb-4 shrink-0"></i>
+                            <p class="font-base text-lg font-bold text-gray-300 text-center flex-1">"To change something, usually slightly, or to cause the characteristics of something to change."</p>
+                            
+                            <!-- Hidden initially -->
+                            <div id="followup-1" class="hidden w-full bg-black/90 p-4 rounded border-l-4 border-ws-sciCyan text-left shadow-inner mt-4">
+                                <p class="text-[11px] text-ws-sciCyan font-bold uppercase tracking-[0.2em] font-ui mb-2"><i class="fas fa-microphone mr-1"></i> Answer this:</p>
+                                <p class="text-sm text-gray-200 font-base italic">"Do you think technology has completely altered the way we communicate?"</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Card 2: PARADOX -->
+                        <div class="ws-panel p-8 flex flex-col items-center min-h-[320px] border-t-4 border-t-gray-600 transition-all duration-300 shadow-lg">
+                            <div class="w-full h-14 mb-6 shrink-0">
+                                <button class="vocab-slot w-full h-full font-ui font-bold text-xl text-gray-500 tracking-[0.2em] uppercase border-2 border-dashed border-gray-600 rounded hover:bg-gray-800 hover:text-white transition" onclick="injectVocab(this, 'PARADOX', 'followup-2')">
+                                    [ INJECT DATA ]
+                                </button>
+                            </div>
+                            <i class="fas fa-infinity text-5xl text-gray-600 mb-4 shrink-0"></i>
+                            <p class="font-base text-lg font-bold text-gray-300 text-center flex-1">"A situation or statement that seems impossible or is difficult to understand because it contains two opposite facts."</p>
+                            
+                            <!-- Hidden initially -->
+                            <div id="followup-2" class="hidden w-full bg-black/90 p-4 rounded border-l-4 border-ws-fanGold text-left shadow-inner mt-4">
+                                <p class="text-[11px] text-ws-fanGold font-bold uppercase tracking-[0.2em] font-ui mb-2"><i class="fas fa-microphone mr-1"></i> Answer this:</p>
+                                <p class="text-sm text-gray-200 font-base italic">"Have you ever experienced a situation in real life that felt like a paradox?"</p>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: CONSEQUENCE -->
+                        <div class="ws-panel p-8 flex flex-col items-center min-h-[320px] border-t-4 border-t-gray-600 transition-all duration-300 shadow-lg">
+                            <div class="w-full h-14 mb-6 shrink-0">
+                                <button class="vocab-slot w-full h-full font-ui font-bold text-xl text-gray-500 tracking-[0.2em] uppercase border-2 border-dashed border-gray-600 rounded hover:bg-gray-800 hover:text-white transition" onclick="injectVocab(this, 'CONSEQUENCE', 'followup-3')">
+                                    [ INJECT DATA ]
+                                </button>
+                            </div>
+                            <i class="fas fa-wave-square text-5xl text-gray-600 mb-4 shrink-0"></i>
+                            <p class="font-base text-lg font-bold text-gray-300 text-center flex-1">"A result of a particular action or situation, often one that is bad or not convenient."</p>
+                            
+                            <!-- Hidden initially -->
+                            <div id="followup-3" class="hidden w-full bg-black/90 p-4 rounded border-l-4 border-ws-sciCyan text-left shadow-inner mt-4">
+                                <p class="text-[11px] text-ws-sciCyan font-bold uppercase tracking-[0.2em] font-ui mb-2"><i class="fas fa-microphone mr-1"></i> Answer this:</p>
+                                <p class="text-sm text-gray-200 font-base italic">"What is a severe consequence of ignoring environmental issues?"</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DATA BANK -->
+                    <div id="vocab-bank" class="w-full max-w-3xl flex flex-col items-center gap-4 fade-in bg-gray-900/50 p-6 rounded-xl border border-gray-700">
+                        <p class="text-sm font-ui text-white tracking-[0.3em] uppercase animate-pulse drop-shadow-[0_0_8px_#ffffff]"><i class="fas fa-database text-ws-sciCyan mr-2"></i> Core Data Bank</p>
+                        <div class="flex flex-wrap justify-center gap-6">
+                            <button class="vocab-fragment ws-btn !bg-transparent border !border-gray-500 hover:!border-ws-sciCyan !py-4 !px-8 text-lg md:text-xl transition-all duration-300" onclick="selectVocabFrag(this, 'PARADOX')">PARADOX</button>
+                            <button class="vocab-fragment ws-btn !bg-transparent border !border-gray-500 hover:!border-ws-sciCyan !py-4 !px-8 text-lg md:text-xl transition-all duration-300" onclick="selectVocabFrag(this, 'CONSEQUENCE')">CONSEQUENCE</button>
+                            <button class="vocab-fragment ws-btn !bg-transparent border !border-gray-500 hover:!border-ws-sciCyan !py-4 !px-8 text-lg md:text-xl transition-all duration-300" onclick="selectVocabFrag(this, 'ALTER')">ALTER</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button id="btn-anomaly-next" onclick="nextPage()" class="ws-btn px-12 py-5 text-xl hidden fade-in shadow-[0_0_20px_#22c55e] !border-ws-success">PROCEED <i class="fas fa-arrow-right ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 7: PRE-VIDEO WARNING -->
+            <section class="level">
+                <div class="page-content">
+                    <div class="max-w-4xl ws-panel p-16 md:p-24 text-center w-full relative border-t-4 border-white shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+                        <i class="fas fa-eye text-7xl md:text-8xl text-white mb-10 drop-shadow-[0_0_30px_#ffffff] animate-pulse"></i>
+                        <h2 class="font-epicSci font-black text-5xl md:text-6xl text-white mb-8 leading-relaxed tracking-widest uppercase">
+                            Visual Log Analysis
+                        </h2>
+                        <p class="text-2xl font-base text-gray-300 font-medium mb-10">We are going to access the visual record of the timeline collision.</p>
+                        
+                        <div class="bg-black/80 p-8 rounded-xl border border-gray-700 text-left shadow-inner w-full max-w-2xl mx-auto">
+                            <p class="font-bold text-white text-base mb-5 tracking-[0.2em] uppercase font-ui border-b border-gray-600 pb-2"><i class="fas fa-crosshairs text-ws-sciCyan mr-2"></i> Target Focus:</p>
+                            <ul class="list-disc pl-6 text-gray-200 font-base space-y-4 text-xl">
+                                <li>Identify moments where a character's action creates a clear <strong class="text-ws-sciCyan">consequence</strong>.</li>
+                                <li>Look for situations where you think: <em>"If they hadn't done that, X wouldn't have happened."</em></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-14 py-6 text-2xl uppercase font-black"><i class="fas fa-play mr-3"></i> RUN TRAILER</button>
+                </div>
+            </section>
+
+            <!-- PAGE 8: THE TRAILER -->
+            <section class="level">
+                <div class="page-content w-full max-w-6xl mx-auto flex flex-col justify-center">
+                    <h2 class="font-ui tracking-[0.3em] mb-2 uppercase text-sm text-gray-500 text-center drop-shadow-md">Playback Active</h2>
+                    <h1 class="text-4xl md:text-5xl font-black uppercase mb-8 text-center text-white font-epicSci tracking-widest">Split Fiction</h1>
+                    
+                    <div class="w-full aspect-video border-4 border-gray-800 shadow-[0_0_60px_rgba(0,0,0,0.9)] relative shrink-0 bg-black p-1 rounded-xl overflow-hidden group">
+                        <iframe class="w-full h-full" src="https://www.youtube.com/embed/fcwngWPXQtg?rel=0" frameborder="0" allowfullscreen></iframe>
+                        <div class="absolute inset-0 pointer-events-none border-2 border-white/10 group-hover:border-ws-sciCyan/50 transition-colors rounded-xl"></div>
+                    </div>
+                </div>
+                <div class="nav-bar !mt-6">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-12 py-5 text-xl">DEBRIEFING <i class="fas fa-arrow-right ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 9: POST-VIDEO IMPRESSIONS -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui tracking-[0.2em] mb-2 uppercase text-lg text-gray-500">Campfire Protocol</h2>
+                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-10 tracking-tight uppercase font-base">Trailer Implications</h1>
+                    
+                    <div class="ws-panel p-10 max-w-3xl w-full text-center border-t-4 border-gray-600">
+                        <span class="text-7xl mb-8 block opacity-90 drop-shadow-lg text-white"><i class="fas fa-brain"></i></span>
+                        <p class="text-2xl md:text-4xl font-bold mb-10 text-white leading-relaxed font-base">
+                            "Think about the characters in the trailer. What was their biggest mistake, and what was the consequence?"
+                        </p>
+                        <div class="bg-black/60 p-8 rounded border border-gray-700 text-left shadow-inner">
+                            <p class="font-bold text-gray-400 text-sm mb-4 tracking-widest uppercase font-ui"><i class="fas fa-microphone text-ws-success mr-2"></i> Speak your mind:</p>
+                            <div class="speaking-starter !border-gray-500 !bg-gray-800/40">"I think a major mistake was when..."</div>
+                            <div class="speaking-starter !border-gray-500 !bg-gray-800/40">"Because they did that, the consequence was..."</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-12 py-5 text-xl">ACCESS SCRIPT <i class="fas fa-terminal ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 10: SCRIPT DECODER (B2 Level) -->
+            <section class="level">
+                <div class="page-content w-full max-w-6xl">
+                    <h2 class="font-ui font-bold tracking-[0.3em] mb-2 uppercase text-sm text-ws-void text-center animate-pulse">Void Interference Detected</h2>
+                    <h1 class="text-4xl md:text-6xl font-black text-white mb-8 tracking-widest uppercase font-epicSci text-center">Script Decoder</h1>
+                    
+                    <div class="ws-panel p-8 md:p-12 w-full bg-black/95 border-t-4 border-t-ws-void shadow-[0_0_60px_rgba(139,92,246,0.15)] font-mono text-left relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-[2px] bg-ws-void/50 animate-pulse"></div>
+                        
+                        <p class="text-ws-void mb-6 font-bold text-lg">> RUNNING DIALOGUE_LOG_01.WAV ... DECRYPTING CONDITIONAL SYNTAX ...</p>
+                        <p class="text-gray-300 text-xl md:text-3xl leading-[2.2em] border-l-4 border-gray-800 pl-6 bg-black/60 p-6 rounded shadow-inner">
+                            "Mio regrets her decisions. If she <span class="hack-node animate-pulse font-bold" id="node-1" onclick="openDecryptionConsole('node-1')">[ ERROR_01 ]</span> the simulation, they wouldn't have been trapped." <br><br>
+                            "Zoe knows the truth. If they hadn't merged the codes, the dragon <span class="hack-node animate-pulse font-bold" id="node-2" onclick="openDecryptionConsole('node-2')">[ ERROR_02 ]</span> in the city right now." <br><br>
+                            "If Mio had trusted Zoe earlier, they <span class="hack-node animate-pulse font-bold" id="node-3" onclick="openDecryptionConsole('node-3')">[ ERROR_03 ]</span> escaped yesterday."
+                        </p>
+
+                        <!-- Dynamic Console -->
+                        <div id="decryption-console-1" class="mt-10 border border-ws-void bg-purple-900/10 p-8 hidden fade-in rounded shadow-inner">
+                             <p class="text-ws-void font-bold mb-6 font-ui tracking-[0.2em] text-center text-xl"><i class="fas fa-terminal mr-2"></i> SYSTEM OVERRIDE: INJECT CORRECT VERB FORM</p>
+                             <div id="hack-options-1" class="flex flex-wrap justify-center gap-6"></div>
+                        </div>
+
+                        <!-- Success Message -->
+                        <div id="decryption-success-1" class="mt-10 bg-ws-success/10 border border-ws-success p-6 rounded hidden text-center shadow-[0_0_30px_rgba(34,197,94,0.2)]">
+                             <p class="text-ws-success font-ui font-bold tracking-[0.2em] text-xl md:text-2xl"><i class="fas fa-check-double mr-3 text-3xl"></i> LOG RESTORED. TIMELINE STABILIZED.</p>
+                             <p class="text-gray-300 mt-2 font-base">Notice the structure: we are speculating about <strong class="text-white">past actions</strong> and their <strong class="text-white">past or present consequences</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-12 py-5 text-xl">LEARN GRAMMAR <i class="fas fa-book-open ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 11: GRAMMAR INTRO 1 (THIRD CONDITIONAL) -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui tracking-[0.3em] mb-3 uppercase text-sm text-ws-fanGold font-bold drop-shadow-[0_0_5px_#f59e0b]">System Architecture</h2>
+                    <h1 class="text-5xl md:text-7xl font-black text-white mb-10 tracking-tight uppercase font-epicFan">The Third Conditional</h1>
+                    
+                    <div class="ws-panel p-10 md:p-14 max-w-4xl mx-auto w-full text-left shadow-2xl border-l-8 border-ws-fanGold bg-black/90">
+                        <p class="text-2xl md:text-3xl font-bold mb-8 text-white font-base border-b border-gray-800 pb-4">Used to talk about <strong class="text-ws-fanGold">unreal situations in the past</strong> and their <strong class="text-ws-fanGold">imaginary past results</strong>. Often used for regrets or criticism.</p>
+                        
+                        <div class="bg-[#0a0a0f] p-8 rounded-xl border border-gray-800 font-base shadow-inner">
+                            <div class="bg-yellow-900/10 p-6 border-l-4 border-ws-fanGold rounded shadow-md mb-6">
+                                <p class="text-2xl text-white font-medium mb-3">
+                                    <span class="text-gray-400">Structure:</span> <br>
+                                    <span class="font-bold text-ws-fanGold">If + Past Perfect</span>, <span class="font-bold text-white">would have + Past Participle</span>
+                                </p>
+                            </div>
+                            <div class="space-y-4 text-xl text-gray-200">
+                                <p>"<strong class="text-ws-fanGold">If she had known</strong> the code, she <strong class="text-white">would have stopped</strong> the hack."</p>
+                                <p class="text-sm text-gray-500 italic">(Reality: She didn't know the code, so she didn't stop the hack).</p>
+                                <hr class="border-gray-800 my-4">
+                                <p>"They <strong class="text-white">wouldn't have died</strong> <strong class="text-ws-fanGold">if they had stayed</strong> in the ship."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-14 py-6 text-xl">NEXT RULE <i class="fas fa-arrow-right ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 12: GRAMMAR INTRO 2 (MIXED CONDITIONAL) -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui tracking-[0.3em] mb-3 uppercase text-sm text-ws-sciCyan font-bold drop-shadow-[0_0_5px_#06b6d4]">System Architecture</h2>
+                    <h1 class="text-5xl md:text-7xl font-black text-white mb-10 tracking-tight uppercase font-epicSci">Mixed Conditionals</h1>
+                    
+                    <div class="ws-panel p-10 md:p-14 max-w-4xl mx-auto w-full text-left shadow-2xl border-l-8 border-ws-sciCyan bg-black/90">
+                        <p class="text-2xl md:text-3xl font-bold mb-8 text-white font-base border-b border-gray-800 pb-4">Used to talk about an <strong class="text-ws-sciCyan">unreal past action</strong> that has an <strong class="text-ws-sciCyan">unreal present result</strong>.</p>
+                        
+                        <div class="bg-[#0a0a0f] p-8 rounded-xl border border-gray-800 font-base shadow-inner">
+                            <div class="bg-cyan-900/10 p-6 border-l-4 border-ws-sciCyan rounded shadow-md mb-6">
+                                <p class="text-2xl text-white font-medium mb-3">
+                                    <span class="text-gray-400">Structure (Type 3 + 2):</span> <br>
+                                    <span class="font-bold text-ws-sciCyan">If + Past Perfect</span>, <span class="font-bold text-white">would + verb (base form)</span>
+                                </p>
+                            </div>
+                            <div class="space-y-4 text-xl text-gray-200">
+                                <p>"<strong class="text-ws-sciCyan">If the timeline hadn't split</strong>, we <strong class="text-white">would be</strong> safe <strong class="text-ws-sciCyan">now</strong>."</p>
+                                <p class="text-sm text-gray-500 italic">(Reality: The timeline split in the past, so we are not safe now).</p>
+                                <hr class="border-gray-800 my-4">
+                                <p>"I <strong class="text-white">wouldn't be</strong> so tired <strong class="text-ws-sciCyan">if I had slept</strong> last night."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-14 py-6 text-xl">CONCEPT CHECK <i class="fas fa-arrow-right ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 13: CONCEPT CHECK -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui font-bold tracking-[0.2em] mb-2 uppercase text-lg text-gray-400">Logic Verification</h2>
+                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-10 tracking-tight uppercase font-base">Reality Check</h1>
+                    
+                    <div class="ws-panel p-10 max-w-4xl w-full text-center border-t-4 border-gray-400">
+                        <p class="text-2xl md:text-3xl font-bold mb-8 text-white leading-relaxed font-base">
+                            Read the conditional sentence. What is the <strong class="text-ws-sciCyan">actual reality</strong>?
+                        </p>
+                        <div class="bg-black/60 p-8 rounded border border-gray-700 text-center shadow-inner mb-8">
+                            <p class="font-bold text-xl text-ws-fanGold italic mb-4">"If Mio had brought her laser, she wouldn't be in danger now."</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto font-base font-bold text-xl">
+                            <button onclick="checkTrialAnswer(this, true, false, null, null, true)" class="ws-btn bg-gray-800 py-6 border border-gray-600 hover:bg-gray-700 normal-case">She didn't bring it, so she is in danger.</button>
+                            <button onclick="checkTrialAnswer(this, false, false, null, null, true)" class="ws-btn bg-gray-800 py-6 border border-gray-600 hover:bg-gray-700 normal-case">She brought it, so she is safe.</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-10 py-4 text-lg">ENTER TRIALS <i class="fas fa-crosshairs ml-2"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 14: TRIAL 1 (Third Conditional) -->
+            <section class="level">
+                <div class="page-content">
+                    <div class="max-w-5xl w-full">
+                        <h2 class="font-epicFan font-black text-4xl md:text-5xl text-white mb-6 text-center tracking-widest uppercase drop-shadow-[0_0_10px_#f59e0b]">TRIAL 1: THE REGRET</h2>
+                        <p class="text-gray-400 text-xl font-base text-center mb-10">Complete the sentence to reflect a past regret.</p>
+
+                        <div class="ws-panel p-12 md:p-16 w-full text-center bg-black/80 border-t-8 border-t-ws-fanGold shadow-[0_0_40px_rgba(245,158,11,0.15)]">
+                            <div class="bg-[#0a0a0f] p-10 rounded-xl border border-gray-700 mb-12 shadow-inner min-h-[150px] flex items-center justify-center">
+                                <p class="text-3xl md:text-5xl text-white font-bold tracking-wide font-base leading-relaxed">
+                                    "If Zoe had listened to the warning, the dragon <span class="text-ws-fanGold border-b-4 border-ws-fanGold px-8 mx-3 text-transparent transition-all" id="trial-1-blank">___</span> the city."
+                                </p>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto font-base font-bold text-2xl">
+                                <button onclick="checkTrialAnswer(this, false, true, 'trial-1-blank', 'wouldn\'t destroy')" class="ws-btn btn-fan py-6 shadow-lg normal-case">wouldn't destroy</button>
+                                <button onclick="checkTrialAnswer(this, true, true, 'trial-1-blank', 'wouldn\'t have destroyed')" class="ws-btn btn-fan py-6 shadow-lg normal-case">wouldn't have destroyed</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-12 py-5 text-xl">CONTINUE <i class="fas fa-arrow-right ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 15: TRIAL 2 (Mixed Conditional) -->
+            <section class="level">
+                <div class="page-content">
+                    <div class="max-w-5xl w-full">
+                        <h2 class="font-epicSci font-black text-4xl md:text-5xl text-white mb-6 text-center tracking-widest uppercase drop-shadow-[0_0_10px_#06b6d4]">TRIAL 2: THE PARADOX</h2>
+                        <p class="text-gray-400 text-xl font-base text-center mb-10">Complete the sentence showing a present consequence.</p>
+
+                        <div class="ws-panel p-12 md:p-16 w-full text-center bg-black/80 border-t-8 border-t-ws-sciCyan shadow-[0_0_40px_rgba(6,182,212,0.15)]">
+                            <div class="bg-[#0a0a0f] p-10 rounded-xl border border-gray-700 mb-12 shadow-inner min-h-[150px] flex items-center justify-center">
+                                <p class="text-3xl md:text-5xl text-white font-bold tracking-wide font-base leading-relaxed">
+                                    "We <span class="text-ws-sciCyan border-b-4 border-ws-sciCyan px-8 mx-3 text-transparent transition-all" id="trial-2-blank">___</span> trapped here right now if you hadn't touched that glowing orb."
+                                </p>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto font-base font-bold text-2xl">
+                                <button onclick="checkTrialAnswer(this, true, false, 'trial-2-blank', 'wouldn\'t be')" class="ws-btn btn-sci py-6 shadow-lg normal-case">wouldn't be</button>
+                                <button onclick="checkTrialAnswer(this, false, false, 'trial-2-blank', 'wouldn\'t have been')" class="ws-btn btn-sci py-6 shadow-lg normal-case">wouldn't have been</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-12 py-5 text-xl">CONTINUE <i class="fas fa-arrow-right ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 16: THE SYNTHESIS ENGINE 2.0 -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui font-bold tracking-[0.3em] mb-2 uppercase text-sm text-ws-success drop-shadow-md animate-pulse">Advanced Logic Puzzle</h2>
+                    <h1 class="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight uppercase font-epicSci">The Synthesis Engine</h1>
+                    <p class="text-xl font-base bg-black/80 px-8 py-4 border border-gray-700 mb-10 text-gray-300 rounded shadow-inner font-bold">Match the <strong class="text-ws-void">If clause</strong> with the correct <strong class="text-ws-sciCyan">Result clause</strong> to restore the logic chain.</p>
+
+                    <div class="ws-panel p-10 md:p-14 w-full max-w-6xl flex flex-col md:flex-row gap-8 md:gap-12 relative bg-black/60 border-t-4 border-ws-success">
+                        <!-- Left Side: If Clauses -->
+                        <div class="flex-1 flex flex-col gap-5">
+                            <button class="match-btn match-left text-left p-6 text-xl shadow-lg normal-case" onclick="selectMatchSynth(this, 'left', 1)">If Mio had charged the blaster...</button>
+                            <button class="match-btn match-left text-left p-6 text-xl shadow-lg normal-case" onclick="selectMatchSynth(this, 'left', 2)">If Zoe had learned the healing spell...</button>
+                            <button class="match-btn match-left text-left p-6 text-xl shadow-lg normal-case" onclick="selectMatchSynth(this, 'left', 3)">If they hadn't opened the portal...</button>
+                        </div>
+                        
+                        <div class="hidden md:flex flex-col items-center justify-center opacity-70 px-4">
+                            <i class="fas fa-link text-6xl text-ws-success animate-pulse drop-shadow-[0_0_15px_#22c55e]"></i>
+                        </div>
+                        
+                        <!-- Right Side: Result Clauses -->
+                        <div class="flex-1 flex flex-col gap-5">
+                            <button class="match-btn match-right text-right p-6 text-xl shadow-lg normal-case" onclick="selectMatchSynth(this, 'right', 2)">...the knight wouldn't have died.</button>
+                            <button class="match-btn match-right text-right p-6 text-xl shadow-lg normal-case" onclick="selectMatchSynth(this, 'right', 3)">...we wouldn't be fighting aliens today.</button>
+                            <button class="match-btn match-right text-right p-6 text-xl shadow-lg normal-case" onclick="selectMatchSynth(this, 'right', 1)">...it would have worked against the boss.</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button id="btn-cross-next" onclick="nextPage()" class="ws-btn px-12 py-5 text-xl hidden fade-in">PROCEED <i class="fas fa-arrow-right ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 17: PURIFY THE TIMELINE (Anti-Bug) -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui font-bold text-xl text-ws-void mb-4 text-center tracking-[0.3em] uppercase drop-shadow-md animate-pulse">Critical Error: Grammatical Paradox</h2>
+                    <h1 class="text-5xl md:text-6xl font-black text-white mb-6 text-center font-epicFan">Purify The Timeline</h1>
+                    <p class="text-gray-300 text-2xl font-base mb-12 text-center max-w-4xl leading-relaxed">The Void Syntax planted a fake structure in the timeline! A very common mistake. <strong class="text-ws-errorRed">Click the wrong words to delete them</strong> and fix the conditional.</p>
+                    
+                    <div class="ws-panel p-12 md:p-16 w-full max-w-5xl text-center bg-black/80 border-2 border-ws-void shadow-[0_0_50px_rgba(139,92,246,0.3)]">
+                        <div class="flex justify-center mb-8">
+                            <i class="fas fa-bug text-6xl text-ws-void drop-shadow-[0_0_15px_#8b5cf6] animate-bounce"></i>
+                        </div>
+                        
+                        <div class="bg-[#0a0a0f] border border-gray-700 p-10 rounded-xl shadow-inner mb-10">
+                            <!-- The sentence to purify -->
+                            <div class="flex flex-wrap justify-center gap-4 text-3xl md:text-4xl font-base font-bold text-white" id="purify-container">
+                                <button class="purify-btn bg-transparent hover:bg-gray-800 px-4 py-2 rounded normal-case" onclick="purifyCheck(this, false)">If</button>
+                                <button class="purify-btn bg-transparent hover:bg-gray-800 px-4 py-2 rounded normal-case" onclick="purifyCheck(this, false)">I</button>
+                                <button class="purify-btn bg-transparent hover:bg-gray-800 px-4 py-2 rounded text-ws-errorRed font-black normal-case" onclick="purifyCheck(this, true)" id="purify-target">would have</button>
+                                <button class="purify-btn bg-transparent hover:bg-gray-800 px-4 py-2 rounded normal-case" onclick="purifyCheck(this, false)">known,</button>
+                                <button class="purify-btn bg-transparent hover:bg-gray-800 px-4 py-2 rounded normal-case" onclick="purifyCheck(this, false)">I</button>
+                                <button class="purify-btn bg-transparent hover:bg-gray-800 px-4 py-2 rounded text-ws-sciCyan font-black normal-case" onclick="purifyCheck(this, false)">would have</button>
+                                <button class="purify-btn bg-transparent hover:bg-gray-800 px-4 py-2 rounded normal-case" onclick="purifyCheck(this, false)">helped.</button>
+                            </div>
+                        </div>
+                        
+                        <p class="text-gray-500 font-ui text-lg tracking-widest uppercase" id="purify-hint">Remember: We don't use 'would' in the 'if' clause.</p>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button id="btn-purify-next" onclick="nextPage()" class="ws-btn px-12 py-5 text-xl hidden fade-in shadow-[0_0_20px_#06b6d4]">CONTINUE <i class="fas fa-arrow-right ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 18: ROLEPLAY INTRO -->
+            <section class="level">
+                <div class="page-content">
+                    <div class="w-full max-w-6xl">
+                        <h2 class="text-5xl md:text-7xl font-epicSci font-black text-white mb-10 text-center tracking-widest uppercase drop-shadow-[0_0_15px_#ffffff]">THE CO-OP ESCAPE</h2>
+                        <div class="ws-panel p-16 md:p-24 w-full text-center bg-black/80 relative shadow-[0_0_60px_rgba(255,255,255,0.1)] border-t-8 border-white">
+                            <p class="text-2xl text-ws-sciCyan font-ui uppercase tracking-[0.4em] mb-8 animate-pulse font-bold">Simulation Active</p>
+                            <h3 class="text-4xl md:text-5xl text-white mb-10 font-base font-bold leading-tight">
+                                "Mio and Zoe are surrounded. The only way out is to rewrite the past."
+                            </h3>
+                            <p class="text-2xl text-gray-300 font-base mb-14 leading-relaxed">You must work together to invent alternate realities. Use <strong class="text-ws-success">Third and Mixed Conditionals</strong> to explain your strategies.</p>
+                            
+                            <button onclick="nextPage()" class="ws-btn px-14 py-6 text-2xl uppercase font-black bg-white !text-black hover:!text-white">ENTER SIMULATION <i class="fas fa-comments ml-3"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <div class="w-32"></div>
+                </div>
+            </section>
+
+            <!-- PAGE 19: CREATIVE TASK (Alternate Reality) -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui font-bold tracking-[0.3em] mb-3 uppercase text-sm text-ws-fanGold animate-pulse">Character Redesign</h2>
+                    <h1 class="text-5xl md:text-6xl font-black text-white mb-10 tracking-tight uppercase font-epicFan">The Tragic Hero</h1>
+                    
+                    <div class="ws-panel p-12 max-w-4xl mx-auto w-full text-center border-t-4 border-ws-fanGold bg-black/90 shadow-2xl">
+                        <span class="text-7xl mb-8 block drop-shadow-md text-ws-fanGold"><i class="fas fa-user-injured"></i></span>
+                        <p class="text-2xl md:text-4xl font-bold mb-10 text-white leading-relaxed font-base">
+                            "A key character died in the previous battle. What was their mistake, and how could it have been avoided?"
+                        </p>
+                        
+                        <div class="bg-black/60 p-8 rounded border border-gray-700 text-left shadow-inner">
+                            <p class="font-bold text-ws-fanGold font-ui text-lg mb-5 tracking-widest uppercase"><i class="fas fa-microphone mr-2 text-ws-fanGold"></i> Speculate (3rd Conditional):</p>
+                            <div class="speaking-starter !border-ws-fanGold !text-ws-fanGold !bg-yellow-900/20">"If he hadn't decided to..."</div>
+                            <div class="speaking-starter !border-ws-fanGold !text-ws-fanGold !bg-yellow-900/20">"He would have survived if..."</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="addXP(50); nextPage()" class="ws-btn px-12 py-5 text-xl">NEXT CHALLENGE <i class="fas fa-arrow-right ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 20: CREATIVE TASK (The "What If" Machine) -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui font-bold tracking-[0.3em] mb-3 uppercase text-sm text-ws-sciCyan animate-pulse">Scenario Crafting</h2>
+                    <h1 class="text-5xl md:text-6xl font-black text-white mb-10 tracking-tight uppercase font-epicSci">The "What If" Machine</h1>
+                    
+                    <div class="ws-panel p-12 max-w-4xl mx-auto w-full text-center border-t-4 border-ws-sciCyan bg-black/90 shadow-[0_0_40px_rgba(6,182,212,0.15)]">
+                        <span class="text-7xl mb-8 block drop-shadow-[0_0_15px_#06b6d4] text-ws-sciCyan"><i class="fas fa-globe-europe"></i></span>
+                        <p class="text-2xl md:text-4xl font-bold mb-10 text-white leading-relaxed font-base">
+                            "Mio activates a machine that shows present consequences of past actions. Imagine a terrible event that happened in this world."
+                        </p>
+                        
+                        <div class="bg-black/60 p-8 rounded border border-gray-700 text-left shadow-inner">
+                            <p class="font-bold text-ws-sciCyan font-ui text-lg mb-5 tracking-widest uppercase"><i class="fas fa-microphone mr-2 text-ws-sciCyan"></i> Describe the reality (Mixed Conditional):</p>
+                            <div class="speaking-starter !border-ws-sciCyan !text-ws-sciCyan !bg-cyan-900/20">"If the villain hadn't stolen the crystal, the city wouldn't be..."</div>
+                            <div class="speaking-starter !border-ws-sciCyan !text-ws-sciCyan !bg-cyan-900/20">"We would be safe right now if..."</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="addXP(50); nextPage()" class="ws-btn px-12 py-5 text-xl">NEXT CHALLENGE <i class="fas fa-arrow-right ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 21: CREATIVE TASK (Worldbuilding) -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui font-bold tracking-[0.3em] mb-3 uppercase text-sm text-gray-300 animate-pulse">World Building</h2>
+                    <h1 class="text-5xl md:text-6xl font-black text-white mb-10 tracking-tight uppercase font-base">The Final Stand</h1>
+                    
+                    <div class="ws-panel p-12 max-w-4xl mx-auto w-full text-center border-t-4 border-gray-300 bg-black/90 shadow-2xl">
+                        <span class="text-7xl mb-8 block drop-shadow-md text-white"><i class="fas fa-chess-knight"></i></span>
+                        <p class="text-2xl md:text-4xl font-bold mb-10 text-white leading-relaxed font-base">
+                            "It's time to fight back. Propose a plan. What past failure must we learn from to win today?"
+                        </p>
+                        
+                        <div class="bg-black/60 p-8 rounded border border-gray-700 text-left shadow-inner">
+                            <p class="font-bold text-gray-300 font-ui text-lg mb-5 tracking-widest uppercase"><i class="fas fa-microphone mr-2 text-white"></i> Strategize:</p>
+                            <div class="speaking-starter !border-gray-400 !text-gray-200 !bg-gray-800/50">"If we had prepared better for the last attack, we..."</div>
+                            <div class="speaking-starter !border-gray-400 !text-gray-200 !bg-gray-800/50">"Therefore, if we want to win now, we must..."</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="addXP(50); nextPage()" class="ws-btn px-12 py-5 text-xl">ESCAPE <i class="fas fa-running ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 22: REAL LIFE CHAT 1 -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui tracking-[0.2em] mb-2 uppercase text-lg text-gray-500">Real Life Connection</h2>
+                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-10 tracking-tight uppercase font-base">Personal Timelines</h1>
+                    
+                    <div class="ws-panel p-10 max-w-3xl w-full text-center border-t-4 border-gray-600">
+                        <span class="text-7xl mb-8 block opacity-90 drop-shadow-lg text-white"><i class="fas fa-history"></i></span>
+                        <p class="text-2xl md:text-4xl font-bold mb-10 text-white leading-relaxed font-base">
+                            "Think about a major decision you made in the past (e.g., choosing a course, moving to a city, meeting someone). How would your life be different today?"
+                        </p>
+                        <div class="bg-black/60 p-8 rounded border border-gray-700 text-left shadow-inner">
+                            <p class="font-bold text-gray-400 font-ui text-sm mb-4 tracking-widest uppercase"><i class="fas fa-microphone text-ws-success mr-2"></i> Share (Mixed Conditional):</p>
+                            <div class="speaking-starter !border-gray-500 !bg-gray-800/50">"If I hadn't chosen to..., I wouldn't be..."</div>
+                            <div class="speaking-starter !border-gray-500 !bg-gray-800/50">"If I had met..., my life today would..."</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-10 py-4 text-lg">NEXT <i class="fas fa-arrow-right ml-2"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 23: REAL LIFE CHAT 2 -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui tracking-[0.2em] mb-2 uppercase text-lg text-ws-sciCyan">Real Life Connection</h2>
+                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-10 tracking-tight uppercase font-base">Tech & Society</h1>
+                    
+                    <div class="ws-panel p-10 max-w-3xl w-full text-center border-t-4 border-ws-sciCyan">
+                        <span class="text-7xl mb-8 block opacity-90 drop-shadow-lg text-white"><i class="fas fa-robot"></i></span>
+                        <p class="text-2xl md:text-4xl font-bold mb-10 text-white leading-relaxed font-base">
+                            "Imagine if the internet or smartphones had never been invented. How would our society be functioning today?"
+                        </p>
+                        <div class="bg-black/60 p-8 rounded border border-gray-700 text-left shadow-inner">
+                            <p class="font-bold text-ws-sciCyan font-ui text-sm mb-4 tracking-widest uppercase"><i class="fas fa-microphone text-ws-sciCyan mr-2"></i> Discuss:</p>
+                            <div class="speaking-starter !border-ws-sciCyan !bg-cyan-900/20">"If smartphones hadn't been invented, we would still be..."</div>
+                            <div class="speaking-starter !border-ws-sciCyan !bg-cyan-900/20">"People's attention spans would be much better if..."</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-10 py-4 text-lg">BOSS BATTLE <i class="fas fa-skull ml-2"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 24: THE BOSS BATTLE (B2 Version) -->
+            <section class="level">
+                <div class="page-content">
+                    <h2 class="font-ui font-bold tracking-[0.3em] mb-3 uppercase text-lg text-ws-void animate-pulse drop-shadow-[0_0_10px_#8b5cf6]">Final Encounter</h2>
+                    <h1 class="text-5xl md:text-7xl font-black text-white mb-8 tracking-tighter uppercase font-epicFan">The Void Syntax</h1>
+                    
+                    <div class="ws-panel p-12 md:p-16 max-w-5xl mx-auto w-full relative bg-[#05050a] border-4 border-ws-void text-center shadow-[0_0_60px_rgba(139,92,246,0.3)]">
+                        <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-ws-void text-white font-black uppercase tracking-widest px-6 py-3 text-lg font-epicSci shadow-[0_0_20px_rgba(139,92,246,0.8)] rounded-full border-2 border-black">BOSS BATTLE</div>
+                        
+                        <i class="fas fa-virus text-8xl text-ws-void mb-8 animate-pulse drop-shadow-[0_0_30px_#8b5cf6]"></i>
+                        
+                        <p class="text-3xl font-bold mb-8 text-white font-base leading-relaxed">
+                            "The Void is rewriting history! You must speak 3 perfect advanced conditionals to lock the timeline and destroy it."
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mb-10">
+                            <div class="bg-black/80 p-6 rounded-xl border border-gray-700 shadow-inner">
+                                <span class="text-ws-fanGold font-black text-2xl font-epicFan mb-2 block">1. REGRET</span>
+                                <p class="text-gray-400 font-base font-medium">Create a 3rd Conditional about a past mistake.</p>
+                            </div>
+                            <div class="bg-black/80 p-6 rounded-xl border border-gray-700 shadow-inner">
+                                <span class="text-ws-sciCyan font-black text-2xl font-epicSci mb-2 block">2. NOW</span>
+                                <p class="text-gray-400 font-base font-medium">Create a Mixed Conditional about a present consequence.</p>
+                            </div>
+                            <div class="bg-black/80 p-6 rounded-xl border border-gray-700 shadow-inner">
+                                <span class="text-gray-200 font-black text-2xl font-base mb-2 block">3. FUTURE</span>
+                                <p class="text-gray-400 font-base font-medium">Create a sentence stating what you would do if you had another chance.</p>
+                            </div>
+                        </div>
+                        
+                        <p class="text-ws-success font-ui font-bold text-xl uppercase tracking-widest animate-pulse"><i class="fas fa-microphone mr-2"></i> Speak to your DM to cast the spell!</p>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <button onclick="prevPage()" class="text-gray-500 hover:text-white uppercase font-ui font-bold tracking-widest transition text-lg"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    <button onclick="nextPage()" class="ws-btn px-14 py-6 text-xl !bg-ws-void !border-ws-void hover:!bg-purple-600">DEFEAT VOID <i class="fas fa-check-double ml-3"></i></button>
+                </div>
+            </section>
+
+            <!-- PAGE 25: SAVE POINT / RATING -->
+            <section class="level">
+                <div class="page-content items-center text-center">
+                    <h2 class="font-ui font-bold tracking-[0.4em] mb-4 uppercase text-lg text-ws-success drop-shadow-[0_0_5px_#22c55e]">Timeline Restored</h2>
+                    <h1 class="text-6xl md:text-8xl font-black text-white mb-12 tracking-tighter uppercase font-epicSci drop-shadow-lg">GAME SAVED</h1>
+
+                    <div class="space-y-5 max-w-2xl w-full text-xl font-bold text-left mb-12 text-gray-300 font-base">
+                        <label class="flex items-center gap-5 p-6 ws-panel bg-black/80 rounded-xl border border-ws-success shadow-[0_0_20px_rgba(34,197,94,0.1)]">
+                            <input type="checkbox" class="w-8 h-8 accent-ws-success rounded" checked disabled>
+                            <span class="mt-1 text-white font-ui tracking-widest text-2xl">Advanced Conditionals Mastered.</span>
+                        </label>
+                        <label class="flex items-center gap-5 p-6 ws-panel bg-black/80 rounded-xl border border-ws-success shadow-[0_0_20px_rgba(34,197,94,0.1)]">
+                            <input type="checkbox" class="w-8 h-8 accent-ws-success rounded" checked disabled>
+                            <span class="mt-1 text-white font-ui tracking-widest text-2xl">Void Syntax Eradicated.</span>
+                        </label>
+                    </div>
+
+                    <div class="border-t border-gray-800 pt-10 w-full flex flex-col items-center max-w-3xl mx-auto">
+                        <p class="mb-6 text-xl font-bold text-gray-400 uppercase tracking-[0.2em] font-ui">Rate the Simulation:</p>
+                        <div class="flex justify-center gap-4 md:gap-8 mb-10">
+                            <button onclick="rate(1)" class="game-rating text-6xl md:text-7xl grayscale opacity-30 hover:scale-110 transition-transform filter drop-shadow-md">⭐</button>
+                            <button onclick="rate(2)" class="game-rating text-6xl md:text-7xl grayscale opacity-30 hover:scale-110 transition-transform filter drop-shadow-md">⭐</button>
+                            <button onclick="rate(3)" class="game-rating text-6xl md:text-7xl grayscale opacity-30 hover:scale-110 transition-transform filter drop-shadow-md">⭐</button>
+                            <button onclick="rate(4)" class="game-rating text-6xl md:text-7xl grayscale opacity-30 hover:scale-110 transition-transform filter drop-shadow-md">⭐</button>
+                            <button onclick="rate(5)" class="game-rating text-6xl md:text-7xl grayscale opacity-30 hover:scale-110 transition-transform filter drop-shadow-md">⭐</button>
+                        </div>
+                        <div id="rat-hub" class="hidden p-5 ws-panel bg-black rounded-xl font-bold text-lg text-center uppercase tracking-[0.3em] text-ws-success w-max mx-auto font-ui border border-ws-success/50 shadow-[0_0_30px_rgba(34,197,94,0.3)]">> REWARD UNLOCKED: <span id="star-c" class="text-white mx-2 font-black text-3xl font-epicSci"></span></div>
+                        
+                        <button onclick="location.reload();" class="mt-14 ws-btn py-5 px-14 text-2xl font-black bg-red-600/20 border-red-500 text-red-500 hover:bg-red-600 hover:text-white">
+                            DISCONNECT
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="fixed bottom-0 left-0 w-full h-14 bg-[#05050a]/95 backdrop-blur-md border-t border-gray-800 z-40 flex items-center justify-center px-4 md:px-6 transition-colors shadow-[0_-5px_30px_rgba(0,0,0,0.8)]">
+        <div class="flex-1 flex flex-col items-center justify-center px-4 md:px-12 w-full max-w-4xl">
+            <div class="flex justify-between w-full mb-2">
+                <span class="text-[11px] font-ui text-gray-500 font-bold tracking-[0.3em] uppercase">Story Progress</span>
+                <span class="text-[11px] font-ui text-white font-bold tracking-[0.3em] uppercase">CHAPTER <span id="level-num" class="text-ws-sciCyan text-sm mx-1">1</span>/<span id="total-levels">25</span></span>
+            </div>
+            <div class="w-full bg-gray-900 h-2.5 rounded-full overflow-hidden border border-gray-800 shadow-inner">
+                <div id="xp-bar" class="h-full bg-gradient-to-r from-ws-sciCyan via-ws-void to-ws-fanGold w-0 transition-all duration-700 shadow-[0_0_15px_#06b6d4]"></div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- 1. Pagination Logic ---
+        let currentLevel = 0;
+        const levels = document.querySelectorAll('.level');
+        const totalLevels = levels.length; 
+        document.getElementById('total-levels').innerText = totalLevels;
+
+        function updateUI() {
+            document.getElementById('level-num').innerText = (currentLevel + 1);
+            const xpBar = document.getElementById('xp-bar');
+            if(totalLevels > 1) xpBar.style.width = `${(currentLevel / (totalLevels - 1)) * 100}%`;
+            
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(iframe => { 
+                const src = iframe.src; iframe.src = src; 
+            });
+            document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function goToLevel(i) {
+            if (i < 0 || i >= totalLevels) return;
+            levels.forEach(l => l.classList.remove('active'));
+            currentLevel = i;
+            levels[currentLevel].classList.add('active');
+            updateUI();
+        }
+
+        function nextPage() { goToLevel(currentLevel + 1); }
+        function prevPage() { goToLevel(currentLevel - 1); }
+
+        document.addEventListener('keydown', e => {
+            if(e.key === 'ArrowRight') nextPage();
+            if(e.key === 'ArrowLeft') prevPage();
+        });
+
+        // --- 2. START & TOOLS ---
+        function pressStart() {
+            document.getElementById('start-btn').classList.add('hidden');
+            document.getElementById('loading-ui').classList.remove('hidden');
+            document.getElementById('loading-ui').classList.add('flex');
+            setTimeout(() => {
+                const screen = document.getElementById('loading-screen');
+                screen.style.opacity = '0';
+                setTimeout(() => { screen.style.display = 'none'; }, 800);
+            }, 2000); 
+        }
+
+        function toggleFullscreen() {
+            const doc = window.document;
+            const docEl = doc.documentElement;
+            const req = docEl.requestFullscreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+            const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+            try {
+                if (!doc.fullscreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) { 
+                    req ? req.call(docEl) : null; 
+                } else { 
+                    exit ? exit.call(doc) : null; 
+                }
+            } catch (err) {}
+        }
+
+        function toggleNotes() {
+            const notes = document.getElementById('notes-panel');
+            notes.classList.toggle('translate-x-full');
+        }
+
+        function triggerPraise(main, icon) {
+            const popup = document.getElementById('praise-toast');
+            document.getElementById('praise-text').innerText = main;
+            document.getElementById('praise-icon').innerHTML = icon;
+            popup.classList.add('show');
+            setTimeout(() => popup.classList.remove('show'), 3000); 
+        }
+
+        // --- 3. CLASS & HP/XP ---
+        let playerFaction = "";
+        let playerName = "Architect";
+        let hp = 3;
+        let ideas = 0;
+
+        function checkNameInput(input) {
+            const btn = document.getElementById('btn-confirm-char');
+            if (input.value.trim().length > 0 && playerFaction !== "") {
+                btn.disabled = false; btn.classList.remove('disabled-btn');
+            } else {
+                btn.disabled = true; btn.classList.add('disabled-btn');
+            }
+        }
+
+        function selectClass(factionName, btnElement) {
+            document.querySelectorAll('.class-card').forEach(c => {
+                c.classList.remove('shadow-[0_0_30px_#06b6d4]', 'shadow-[0_0_30px_#f59e0b]', 'border-ws-sciCyan', 'border-ws-fanGold');
+            });
+            if(factionName.includes('SCI')) btnElement.classList.add('shadow-[0_0_30px_#06b6d4]', 'border-ws-sciCyan');
+            else btnElement.classList.add('shadow-[0_0_30px_#f59e0b]', 'border-ws-fanGold');
+            
+            playerFaction = factionName;
+            checkNameInput(document.getElementById('player-name-input'));
+        }
+
+        function confirmCharacter() {
+            const nameInput = document.getElementById('player-name-input').value.trim();
+            if(nameInput) playerName = nameInput;
+            document.getElementById('hud-player-name').innerText = `${playerName} | ${playerFaction}`;
+            document.getElementById('hud-player-name').classList.replace('text-gray-200', 'text-ws-sciCyan');
+            addXP(20);
+            nextPage();
+        }
+
+        function addXP(amount) {
+            ideas += amount;
+            const xpCounter = document.getElementById('xp-counter');
+            xpCounter.innerText = `${ideas}`;
+            xpCounter.parentElement.classList.add('scale-110', 'bg-gray-800', 'border-ws-fanGold');
+            setTimeout(() => xpCounter.parentElement.classList.remove('scale-110', 'bg-gray-800', 'border-ws-fanGold'), 400);
+        }
+
+        function takeDamage() {
+            if(hp > 0) {
+                const hpIcon = document.getElementById('hp-' + hp);
+                if(hpIcon) {
+                    hpIcon.classList.replace('text-ws-sciCyan', 'text-gray-800');
+                    hpIcon.classList.remove('drop-shadow-[0_0_8px_#06b6d4]');
+                }
+                hp--;
+            }
+            const overlay = document.getElementById('damage-overlay');
+            overlay.classList.remove('take-damage');
+            void overlay.offsetWidth;
+            overlay.classList.add('take-damage');
+        }
+
+        // --- 4. DATA INJECTION (Vocab) ---
+        let vocabSolved = 0;
+        let selectedVocabFragWord = null;
+        let selectedVocabFragBtn = null;
+
+        function selectVocabFrag(btn, word) {
+            document.querySelectorAll('.vocab-fragment').forEach(b => {
+                b.classList.remove('scale-110', '!border-ws-sciCyan', 'shadow-[0_0_20px_#06b6d4]');
+            });
+            btn.classList.add('scale-110', '!border-ws-sciCyan', 'shadow-[0_0_20px_#06b6d4]');
+            selectedVocabFragWord = word; selectedVocabFragBtn = btn;
+        }
+
+        function injectVocab(slotBtn, correctWord, followupId) {
+            if (!selectedVocabFragWord) return;
+            if (selectedVocabFragWord === correctWord) {
+                slotBtn.innerHTML = `<i class="fas fa-check-circle mr-2"></i> ${correctWord}`;
+                slotBtn.classList.add('solved', '!bg-ws-success/20', '!text-ws-success', '!border-ws-success');
+                selectedVocabFragBtn.classList.add('opacity-0', 'pointer-events-none');
+                selectedVocabFragWord = null; selectedVocabFragBtn = null;
+                
+                // Show Follow-up safely with animation
+                const followupEl = document.getElementById(followupId);
+                if (followupEl) {
+                    followupEl.classList.remove('hidden');
+                    followupEl.classList.add('fade-in');
+                }
+                
+                triggerPraise('DATA RESTORED', '<i class="fas fa-save"></i>');
+                addXP(25); vocabSolved++;
+                if(vocabSolved === 3) {
+                    document.getElementById('btn-anomaly-next').classList.remove('hidden');
+                    document.getElementById('vocab-bank').classList.add('hidden');
+                }
+            } else {
+                takeDamage();
+            }
+        }
+
+        // --- 5. SCRIPT DECODER (Hacker Terminal B2) ---
+        const hackNodes = {
+            'node-1': { correct: 'hadn\'t started', options: ['didn\'t start', 'hadn\'t started', 'wouldn\'t start'], page: 1 },
+            'node-2': { correct: 'wouldn\'t be', options: ['wouldn\'t be', 'wouldn\'t have been', 'wasn\'t'], page: 1 },
+            'node-3': { correct: 'would have', options: ['would have', 'would', 'had'], page: 1 }
+        };
+        let activeHackNode = null;
+
+        function openDecryptionConsole(nodeId) {
+            if(document.getElementById(nodeId).classList.contains('solved')) return;
+            document.querySelectorAll('.hack-node').forEach(n => n.classList.remove('ring', 'ring-2', 'ring-ws-void'));
+            document.getElementById(nodeId).classList.add('ring', 'ring-2', 'ring-ws-void');
+            activeHackNode = nodeId;
+            const pageNum = hackNodes[nodeId].page;
+            document.getElementById(`decryption-console-${pageNum}`).classList.remove('hidden');
+            const optionsContainer = document.getElementById(`hack-options-${pageNum}`);
+            optionsContainer.innerHTML = '';
+            hackNodes[nodeId].options.forEach(opt => {
+                optionsContainer.innerHTML += `<button class="ws-btn normal-case !bg-ws-void !border-ws-void !text-white hover:!bg-purple-600 text-lg" onclick="attemptHack('${opt.replace(/'/g, "\\'")}', ${pageNum})">${opt}</button>`;
+            });
+        }
+
+        function attemptHack(selectedOpt, pageNum) {
+            const nodeData = hackNodes[activeHackNode];
+            const el = document.getElementById(activeHackNode);
+            if (selectedOpt === nodeData.correct) {
+                el.innerText = selectedOpt;
+                el.classList.remove('hack-node', 'ring', 'ring-2', 'ring-ws-void', 'animate-pulse');
+                el.classList.add('text-ws-sciCyan', 'font-bold', 'solved');
+                document.getElementById(`decryption-console-${pageNum}`).classList.add('hidden');
+                triggerPraise('TIMELINE FIXED', '<i class="fas fa-unlock"></i>');
+                addXP(50);
+                
+                const allPageNodes = Object.keys(hackNodes).filter(k => hackNodes[k].page === pageNum);
+                const allSolved = allPageNodes.every(k => document.getElementById(k).classList.contains('solved'));
+                if(allSolved) document.getElementById(`decryption-success-${pageNum}`).classList.remove('hidden');
+            } else { takeDamage(); }
+        }
+
+        // --- 6. GRAMMAR TRIALS ---
+        function checkTrialAnswer(btn, isCorrect, isFanBtn = false, blankId, word, isConcept = false) {
+            if(isCorrect) {
+                btn.classList.add('matched');
+                if(!isConcept) {
+                    document.getElementById(blankId).innerText = word;
+                    document.getElementById(blankId).classList.replace('text-transparent', isFanBtn ? 'text-ws-fanGold' : 'text-ws-sciCyan');
+                }
+                addXP(30); triggerPraise('CORRECT', '<i class="fas fa-check"></i>');
+                // Disable siblings
+                const siblings = btn.parentElement.children;
+                for(let s of siblings) s.style.pointerEvents = 'none';
+            } else { takeDamage(); }
+        }
+
+        // --- 7. THE SYNTHESIS ENGINE (Match Clause Game) ---
+        let synthSelected = null;
+        let synthMatchedCount = 0;
+        
+        function selectMatchSynth(btn, side, id) {
+            if(btn.classList.contains('matched')) return;
+
+            if(side === 'left') {
+                document.querySelectorAll('.match-left').forEach(b => { 
+                    if(!b.classList.contains('matched')) b.classList.remove('selected');
+                });
+                btn.classList.add('selected');
+                synthSelected = { btn: btn, id: id };
+            } 
+            else if (side === 'right' && synthSelected) {
+                if(synthSelected.id === id) {
+                    btn.classList.add('matched');
+                    synthSelected.btn.classList.remove('selected');
+                    synthSelected.btn.classList.add('matched');
+                    
+                    triggerPraise('LOGIC LINKED', '<i class="fas fa-link"></i>');
+                    addXP(25);
+                    synthMatchedCount++;
+                    synthSelected = null;
+                    
+                    if(synthMatchedCount >= 3) {
+                        document.getElementById('btn-cross-next').classList.remove('hidden');
+                    }
+                } else {
+                    takeDamage();
+                    synthSelected = null;
+                    document.querySelectorAll('.match-left').forEach(b => { 
+                        if(!b.classList.contains('matched')) b.classList.remove('selected');
+                    });
+                }
+            }
+        }
+
+        // --- 8. PURIFY THE SCROLL (Anti-Bug Grammar) ---
+        let purifySolved = false;
+        function purifyCheck(btn, isCorrect) {
+            if(purifySolved) return;
+            if(isCorrect) {
+                btn.classList.add('opacity-0', 'scale-50', 'pointer-events-none');
+                document.getElementById('purify-container').classList.add('shadow-[0_0_30px_#22c55e]', 'border-ws-success');
+                document.getElementById('purify-hint').innerText = "TIMELINE PURIFIED. STRUCTURE CORRECTED.";
+                document.getElementById('purify-hint').classList.replace('text-gray-500', 'text-ws-success');
+                triggerPraise('BUG DESTROYED', '<i class="fas fa-shield-alt"></i>');
+                addXP(100);
+                document.getElementById('btn-purify-next').classList.remove('hidden');
+                purifySolved = true;
+            } else {
+                takeDamage();
+                btn.classList.add('bg-red-900', 'text-white');
+                setTimeout(() => btn.classList.remove('bg-red-900', 'text-white'), 500);
+            }
+        }
+
+        // --- 9. RATING ---
+        function rate(n) {
+            const drops = document.querySelectorAll('.game-rating');
+            drops.forEach((d, i) => {
+                if (i >= n) { d.classList.add('grayscale', 'opacity-30'); d.style.filter = "none"; } 
+                else { d.classList.remove('grayscale', 'opacity-30'); d.style.filter = "drop-shadow(0 0 15px #22c55e)"; }
+            });
+            document.getElementById('rat-hub').classList.remove('hidden');
+            document.getElementById('star-c').innerText = n * 500 + " XP";
+            triggerPraise('DATA SAVED', '<i class="fas fa-save"></i>');
+        }
+
+        // --- 10. NOTES PERSISTENCE ---
+        const notesTextarea = document.getElementById('class-notes');
+        if(localStorage.getItem('ws_split_b2_notes')) notesTextarea.value = localStorage.getItem('ws_split_b2_notes');
+        notesTextarea.addEventListener('input', () => localStorage.setItem('ws_split_b2_notes', notesTextarea.value));
+        
+        updateUI();
+    </script>
+</body>
+</html>
